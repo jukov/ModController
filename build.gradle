@@ -22,7 +22,6 @@ apply plugin: 'net.minecraftforge.gradle.forge'
 
 group = 'info.jukov.f19plugin'
 version = '1.0'
-description = 'An example plugin'
 
 repositories {
     mavenCentral()

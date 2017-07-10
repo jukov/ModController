@@ -22,7 +22,12 @@ import info.jukov.f19plugin.pojo.ModData;
  * Date: 06.07.2017
  * Time: 23:20
  */
-@Plugin(id = "f19plugin", name = "F19 Plugin", version = "1.0")
+@Plugin(id = "modController",
+		name = "Mod Controller",
+		version = "1.0",
+		description = "Plugin for make plugin banlist/whitelist.",
+		authors = "jukov",
+		url = "https://github.com/jukov/ModController")
 public class Main {
 
 	private static final String LOG_TAG = "[F19Plugin]";
