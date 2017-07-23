@@ -9,7 +9,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 
-import info.jukov.f19plugin.pojo.ModData;
+import info.jukov.f19plugin.pojo.IPluginConfig;
 import info.jukov.f19plugin.pojo.PluginConfig;
 import ninja.leaping.configurate.ConfigurationNode;
 import ninja.leaping.configurate.ConfigurationOptions;
@@ -23,20 +23,17 @@ import ninja.leaping.configurate.objectmapping.ObjectMappingException;
  * Date: 08.07.2017
  * Time: 21:47
  */
-public class ConfigManager {
+public class ConfigStorageDelegate {
 
 	private static final String NODE_MODE = "mode";
 	private static final String NODE_MOD_LIST = "mod_list";
-	private static final String NODE_KICK_MESSAGE = "kick_message";
-
-	private static final String KICK_MESSAGE_DEFAULT = "These mods not allowed: %s";
 
 	private final Logger logger;
 
 	private final Path defaultConfigPath;
 	private final ConfigurationLoader<CommentedConfigurationNode> configurationLoader;
 
-	public ConfigManager(final Logger logger, final Path defaultConfigPath) {
+	public ConfigStorageDelegate(final Logger logger, final Path defaultConfigPath) {
 		this.logger = logger;
 		this.defaultConfigPath = defaultConfigPath;
 
@@ -63,7 +60,16 @@ public class ConfigManager {
 		return makePluginConfig(rootNode);
 	}
 
-	public void saveNode(final ConfigurationNode configurationNode) {
+	public void saveConfig(final IPluginConfig pluginConfig) {
+		ConfigurationNode rootNode = configurationLoader.createEmptyNode(ConfigurationOptions.defaults());
+
+		rootNode.getNode(NODE_MODE).setValue(pluginConfig.getMode().toString());
+		rootNode.getNode(NODE_MOD_LIST).setValue(new ArrayList<String>(pluginConfig.getMods()));
+
+		saveNode(rootNode);
+	}
+
+	private void saveNode(final ConfigurationNode configurationNode) {
 		try {
 			configurationLoader.save(configurationNode);
 		} catch (final IOException e) {
@@ -74,9 +80,8 @@ public class ConfigManager {
 	private ConfigurationNode getDefaultConfig() {
 		ConfigurationNode rootNode = configurationLoader.createEmptyNode(ConfigurationOptions.defaults());
 
-		rootNode.getNode(NODE_MODE).setValue(PluginConfig.Mode.WHITELIST.ordinal());
-		rootNode.getNode(NODE_MOD_LIST).setValue(new ArrayList<ModData>());
-		rootNode.getNode(NODE_KICK_MESSAGE).setValue(KICK_MESSAGE_DEFAULT);
+		rootNode.getNode(NODE_MODE).setValue(PluginConfig.Mode.WHITELIST.toString());
+		rootNode.getNode(NODE_MOD_LIST).setValue(new ArrayList<String>());
 
 		return rootNode;
 	}
@@ -84,9 +89,8 @@ public class ConfigManager {
 	private static PluginConfig makePluginConfig(final ConfigurationNode rootNode) {
 		try {
 			return new PluginConfig(
-					PluginConfig.Mode.get(rootNode.getNode(NODE_MODE).getInt()),
-					rootNode.getNode(NODE_MOD_LIST).getList(TypeToken.of(ModData.class)),
-					rootNode.getNode(NODE_KICK_MESSAGE).getString());
+					PluginConfig.Mode.valueOf(rootNode.getNode(NODE_MODE).getString()),
+					rootNode.getNode(NODE_MOD_LIST).getList(TypeToken.of(String.class)));
 		} catch (final ObjectMappingException e) {
 			throw new IllegalStateException(e);
 		}

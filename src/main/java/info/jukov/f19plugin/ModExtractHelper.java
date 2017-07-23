@@ -10,8 +10,10 @@ import org.spongepowered.api.entity.living.player.Player;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.SortedSet;
+import java.util.TreeSet;
 
-import info.jukov.f19plugin.pojo.ModData;
+import javax.annotation.Nullable;
 
 /**
  * User: jukov
@@ -26,7 +28,11 @@ public final class ModExtractHelper {
 	private ModExtractHelper() {
 	}
 
-	public static List<ModData> getPlayerMods(final Player player) {
+	@Nullable
+	public static SortedSet<String> getPlayerMods(final Player player) {
+		if (player == null) {
+			return null;
+		}
 
 		final EntityPlayerMP playerMP = (EntityPlayerMP) player;
 		final NetworkManager networkManager;
@@ -35,14 +41,31 @@ public final class ModExtractHelper {
 			final NetHandlerPlayServer handlerPlayServer = (NetHandlerPlayServer) playerMP.getClass().getField(FIELD_71135_A).get(playerMP);
 			networkManager = (NetworkManager) handlerPlayServer.getClass().getField(FIELD_147371_A).get(handlerPlayServer);
 		} catch (final IllegalAccessException | NoSuchFieldException e) {
-			throw new IllegalStateException(e);
+			return null;
 		}
 
-		final Map<String, String> modMap = NetworkDispatcher.get(networkManager).getModList();
-		final List<ModData> modList = new ArrayList<>();
+		if (networkManager == null) {
+			return null;
+		}
 
-		modMap.entrySet().forEach(entry -> modList.add(new ModData(entry.getKey(), entry.getValue())));
+		final NetworkDispatcher networkDispatcher = NetworkDispatcher.get(networkManager);
 
-		return modList;
+		if (networkDispatcher == null) {
+			return null;
+		}
+
+		final Map<String, String> modMap;
+
+		try {
+			modMap = networkDispatcher.getModList();
+		} catch (@SuppressWarnings("ProhibitedExceptionCaught") final NullPointerException e) {
+			return null;
+		}
+
+		final TreeSet<String> modSet = new TreeSet<>(String.CASE_INSENSITIVE_ORDER);
+
+		modMap.entrySet().forEach(entry -> modSet.add(entry.getKey()));
+
+		return modSet;
 	}
 }

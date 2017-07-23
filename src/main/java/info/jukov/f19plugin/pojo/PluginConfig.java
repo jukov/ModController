@@ -1,54 +1,72 @@
 package info.jukov.f19plugin.pojo;
 
-import java.util.List;
+import java.util.Collection;
+import java.util.SortedSet;
+import java.util.TreeSet;
 
 /**
  * User: jukov
  * Date: 08.07.2017
  * Time: 22:07
  */
-public class PluginConfig {
+public class PluginConfig implements IPluginConfig {
 
-	public enum Mode {
-		WHITELIST,
-		BLACKLIST;
+	private Mode mode;
 
-		public static Mode get(final int index) {
-			if (index >= 0 && index < Mode.values().length) {
-				return Mode.values()[index];
-			}
-			throw new IllegalStateException();
-		}
-	}
+	private final SortedSet<String> modSet;
 
-	private final Mode mode;
-	private final List<ModData> modList;
-	private final String kickMessage;
-
-	public PluginConfig(final Mode mode, final List<ModData> modList, final String kickMessage) {
+	public PluginConfig(final Mode mode, final Collection<String> modSet) {
 		this.mode = mode;
-		this.modList = modList;
-		this.kickMessage = kickMessage;
+
+		this.modSet = new TreeSet<>(String.CASE_INSENSITIVE_ORDER);
+		this.modSet.addAll(modSet);
 	}
 
+	@Override
 	public Mode getMode() {
 		return mode;
 	}
 
-	public List<ModData> getModList() {
-		return modList;
+	@Override
+	public void setMode(final Mode mode) {
+		this.mode = mode;
 	}
 
-	public String getKickMessage() {
-		return kickMessage;
+	@Override
+	public void addMod(final String modId) {
+		modSet.add(modId);
+	}
+
+	@Override
+	public void addMods(final Collection<String> modIds) {
+		modSet.addAll(modIds);
+	}
+
+	@Override
+	public void removeMod(final String modId) {
+		modSet.remove(modId);
+	}
+
+	@Override
+	public void removeMods(final Collection<String> modIds) {
+		modSet.removeAll(modIds);
+	}
+
+	@Override
+	public Collection<String> getMods() {
+		return modSet;
 	}
 
 	@Override
 	public String toString() {
 		return "PluginConfig{" +
 				"mode=" + mode +
-				", modList=" + modList +
-				", kickMessage='" + kickMessage + '\'' +
+				", modSet=" + modSet +
 				'}';
+	}
+
+	@Override
+	public void reload() {
+		//Do nothing in POJO
 	}
 }
